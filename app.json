@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Ilmify",
+    "slug": "ilmify",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#2D5F3F",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#2D5F3F"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ilmify.app",
+      "backgroundColor": "#2D5F3F"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#2D5F3F"
+      },
+      "package": "com.ilmify.app",
+      "backgroundColor": "#2D5F3F"
+    },
+    "web": {
+      "backgroundColor": "#2D5F3F"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "scheme": "ilmify"
+  }
+}
