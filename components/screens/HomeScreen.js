@@ -1,7 +1,140 @@
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useState, useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import PostCard from '../PostCard';
+
+// Demo posts data
+const DEMO_POSTS = [
+  {
+    id: '1',
+    authorName: 'Ahmad Ibrahim',
+    authorUsername: 'ahmad_i',
+    timestamp: '2h ago',
+    category: 'Quran',
+    content: 'Just learned about the beautiful tafsir of Surah Al-Fatiha. The depth of meaning in just 7 verses is incredible! Does anyone have recommendations for good tafsir books?',
+    likes: 24,
+    comments: 8,
+    shares: 3,
+    isLiked: false,
+    isBookmarked: false,
+  },
+  {
+    id: '2',
+    authorName: 'Fatima Hassan',
+    authorUsername: 'fatima_h',
+    timestamp: '5h ago',
+    category: 'Hadith',
+    content: 'Reminder: "The best of you are those who are best to their families" - Prophet Muhammad (PBUH). Let\'s strive to be kind and patient with our loved ones today!',
+    likes: 156,
+    comments: 23,
+    shares: 45,
+    isLiked: true,
+    isBookmarked: true,
+  },
+  {
+    id: '3',
+    authorName: 'Yusuf Ali',
+    authorUsername: 'yusuf_ali',
+    timestamp: '1d ago',
+    category: 'Fiqh',
+    content: 'Question: What is the ruling on combining prayers while traveling? I have a long journey coming up and want to make sure I understand the conditions correctly.',
+    likes: 12,
+    comments: 15,
+    shares: 2,
+    isLiked: false,
+    isBookmarked: false,
+  },
+];
 
 export default function HomeScreen({ userData }) {
+  const [activeTab, setActiveTab] = useState('forYou'); // 'following', 'forYou', 'latest'
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [posts, setPosts] = useState(DEMO_POSTS);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Simulate API call
+    setTimeout(() => {
+      setPosts(DEMO_POSTS);
+      setRefreshing(false);
+    }, 1500);
+  }, []);
+
+  const loadMorePosts = () => {
+    if (loading) return;
+
+    setLoading(true);
+    // Simulate loading more posts
+    setTimeout(() => {
+      setLoading(false);
+      // In production, append new posts
+    }, 1500);
+  };
+
+  const handleScroll = (event) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const paddingToBottom = 20;
+
+    if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
+      loadMorePosts();
+    }
+  };
+
+  const handleLike = (postId) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId
+          ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 }
+          : post
+      )
+    );
+  };
+
+  const handleComment = (postId) => {
+    console.log('Comment on post:', postId);
+    // TODO: Navigate to post detail/comments
+  };
+
+  const handleShare = (postId) => {
+    console.log('Share post:', postId);
+    // TODO: Open share sheet
+  };
+
+  const renderEmptyState = () => {
+    if (activeTab === 'following') {
+      return (
+        <View style={styles.emptyState}>
+          <Ionicons name="people-outline" size={64} color="#D4AF37" />
+          <Text style={styles.emptyTitle}>No posts yet</Text>
+          <Text style={styles.emptyText}>
+            Follow others to see their posts here
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.emptyState}>
+        <Ionicons name="create-outline" size={64} color="#D4AF37" />
+        <Text style={styles.emptyTitle}>No posts available</Text>
+        <Text style={styles.emptyText}>
+          Be the first to share something!
+        </Text>
+      </View>
+    );
+  };
+
+  const getFilteredPosts = () => {
+    // In production, filter posts based on active tab
+    if (activeTab === 'following') {
+      return []; // Return empty for demo
+    }
+    return posts;
+  };
+
+  const filteredPosts = getFilteredPosts();
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -12,63 +145,105 @@ export default function HomeScreen({ userData }) {
             {userData?.fullName || userData?.username || 'Friend'}
           </Text>
         </View>
-        <View style={styles.headerIcons}>
-          <Ionicons name="search" size={24} color="#FFFFFF" style={styles.headerIcon} />
+        <TouchableOpacity>
+          <Ionicons name="search" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Quick Stats */}
+      <View style={styles.statsCard}>
+        <View style={styles.statItem}>
+          <Ionicons name="trophy" size={20} color="#D4AF37" />
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statValue}>0</Text>
+            <Text style={styles.statLabel}>Points</Text>
+          </View>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statValue}>0</Text>
+            <Text style={styles.statLabel}>Won Today</Text>
+          </View>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Ionicons name="flame" size={20} color="#FF9800" />
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statValue}>0</Text>
+            <Text style={styles.statLabel}>Day Streak</Text>
+          </View>
         </View>
       </View>
 
-      {/* Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      {/* Feed Tabs */}
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'following' && styles.tabActive]}
+          onPress={() => setActiveTab('following')}
+        >
+          <Text style={[styles.tabText, activeTab === 'following' && styles.tabTextActive]}>
+            Following
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'forYou' && styles.tabActive]}
+          onPress={() => setActiveTab('forYou')}
+        >
+          <Text style={[styles.tabText, activeTab === 'forYou' && styles.tabTextActive]}>
+            For You
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'latest' && styles.tabActive]}
+          onPress={() => setActiveTab('latest')}
+        >
+          <Text style={[styles.tabText, activeTab === 'latest' && styles.tabTextActive]}>
+            Latest
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Feed Content */}
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#D4AF37"
+            colors={['#D4AF37']}
+          />
+        }
+        onScroll={handleScroll}
+        scrollEventThrottle={400}
+      >
         <View style={styles.content}>
+          {filteredPosts.length === 0 ? (
+            renderEmptyState()
+          ) : (
+            <>
+              {filteredPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onLike={handleLike}
+                  onComment={handleComment}
+                  onShare={handleShare}
+                />
+              ))}
 
-          {/* Quick Stats */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
-              <Ionicons name="trophy" size={28} color="#D4AF37" />
-              <Text style={styles.statValue}>0</Text>
-              <Text style={styles.statLabel}>Points</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Ionicons name="checkmark-circle" size={28} color="#4CAF50" />
-              <Text style={styles.statValue}>0</Text>
-              <Text style={styles.statLabel}>Completed</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Ionicons name="flame" size={28} color="#FF9800" />
-              <Text style={styles.statValue}>0</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
-            </View>
-          </View>
-
-          {/* Feed Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Community Feed</Text>
-            <View style={styles.placeholderCard}>
-              <Ionicons name="chatbubbles-outline" size={48} color="#D4AF37" />
-              <Text style={styles.placeholderTitle}>No posts yet</Text>
-              <Text style={styles.placeholderText}>
-                Be the first to share a question or knowledge with the community
-              </Text>
-            </View>
-          </View>
-
-          {/* Daily Quiz */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Daily Challenge</Text>
-            <View style={styles.dailyQuizCard}>
-              <View style={styles.dailyQuizHeader}>
-                <Ionicons name="bulb" size={32} color="#D4AF37" />
-                <View style={styles.dailyQuizInfo}>
-                  <Text style={styles.dailyQuizTitle}>Today's Quiz</Text>
-                  <Text style={styles.dailyQuizSubtitle}>Test your knowledge</Text>
+              {/* Loading Indicator */}
+              {loading && (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#D4AF37" />
+                  <Text style={styles.loadingText}>Loading more posts...</Text>
                 </View>
-              </View>
-              <Text style={styles.dailyQuizDescription}>
-                Complete today's challenge to earn bonus points and maintain your streak!
-              </Text>
-            </View>
-          </View>
-
+              )}
+            </>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -84,7 +259,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2D5F3F',
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 20,
+    paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -99,12 +274,73 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
-  headerIcons: {
+  statsCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 12,
+    padding: 16,
     flexDirection: 'row',
-    gap: 16,
+    justifyContent: 'space-around',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  headerIcon: {
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  statTextContainer: {
+    alignItems: 'flex-start',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D5F3F',
+  },
+  statLabel: {
+    fontSize: 11,
+    color: '#666',
+  },
+  statDivider: {
+    width: 1,
+    height: '100%',
+    backgroundColor: '#E0E0E0',
+  },
+  tabsContainer: {
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    marginTop: 16,
+    marginHorizontal: 16,
+    borderRadius: 12,
     padding: 4,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  tabActive: {
+    backgroundColor: '#2D5F3F',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  tabTextActive: {
+    color: '#FFFFFF',
   },
   scrollView: {
     flex: 1,
@@ -112,101 +348,40 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
+  emptyState: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
+    padding: 48,
     alignItems: 'center',
+    marginTop: 24,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2D5F3F',
-    marginTop: 8,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
+  emptyTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2D5F3F',
-    marginBottom: 12,
-  },
-  placeholderCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 32,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  placeholderTitle: {
-    fontSize: 16,
     fontWeight: '600',
     color: '#2D5F3F',
     marginTop: 16,
     marginBottom: 8,
   },
-  placeholderText: {
+  emptyText: {
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
     lineHeight: 20,
   },
-  dailyQuizCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#D4AF37',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  dailyQuizHeader: {
+  loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    gap: 12,
+    justifyContent: 'center',
+    paddingVertical: 20,
+    gap: 8,
   },
-  dailyQuizInfo: {
-    flex: 1,
-  },
-  dailyQuizTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2D5F3F',
-    marginBottom: 4,
-  },
-  dailyQuizSubtitle: {
-    fontSize: 12,
-    color: '#666',
-  },
-  dailyQuizDescription: {
+  loadingText: {
     fontSize: 14,
     color: '#666',
-    lineHeight: 20,
   },
 });
