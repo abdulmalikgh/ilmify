@@ -8,6 +8,7 @@ import EmailVerificationScreen from '../components/EmailVerificationScreen';
 import ForgotPasswordScreen from '../components/ForgotPasswordScreen';
 import ResetPasswordScreen from '../components/ResetPasswordScreen';
 import OnboardingFlow from '../components/OnboardingFlow';
+import MainNavigation from '../components/MainNavigation';
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState('welcome');
@@ -188,42 +189,7 @@ export default function Home() {
   }
 
   if (currentScreen === 'mainApp') {
-    // Main app placeholder - will be replaced with actual app
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#2D5F3F', padding: 20 }}>
-        <StatusBar style="light" />
-        <Text style={{ color: 'white', fontSize: 24, marginBottom: 20, fontWeight: 'bold', textAlign: 'center' }}>
-          Welcome to Ilmify!
-        </Text>
-        <Text style={{ color: '#D4AF37', fontSize: 18, marginBottom: 10, textAlign: 'center' }}>
-          {userData?.isGuest ? 'Guest Mode' : `Assalamu Alaikum, ${userData?.fullName || userData?.username}!`}
-        </Text>
-
-        {!userData?.isGuest && userData?.hasCompletedOnboarding && (
-          <View style={{ marginTop: 20, padding: 16, backgroundColor: '#E8F5E9', borderRadius: 12, width: '100%' }}>
-            <Text style={{ color: '#2D5F3F', fontSize: 14, fontWeight: '600', marginBottom: 8 }}>
-              Your Profile:
-            </Text>
-            {userData.knowledgeLevel && (
-              <Text style={{ color: '#2D5F3F', fontSize: 12, marginBottom: 4 }}>
-                • Knowledge Level: {userData.knowledgeLevel.charAt(0).toUpperCase() + userData.knowledgeLevel.slice(1)}
-              </Text>
-            )}
-            {userData.interests && userData.interests.length > 0 && (
-              <Text style={{ color: '#2D5F3F', fontSize: 12 }}>
-                • Interests: {userData.interests.map(i => i.charAt(0).toUpperCase() + i.slice(1)).join(', ')}
-              </Text>
-            )}
-          </View>
-        )}
-
-        <Text style={{ color: '#E8F5E9', fontSize: 14, textAlign: 'center', marginTop: 20 }}>
-          {userData?.isGuest
-            ? 'You have limited access. Sign up for full features.'
-            : 'Main app content will be integrated here'}
-        </Text>
-      </View>
-    );
+    return <MainNavigation userData={userData} />;
   }
 
   // Default fallback
