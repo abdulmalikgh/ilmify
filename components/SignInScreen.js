@@ -4,8 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function SignInScreen({ onBack, onSignUpPress, onForgotPassword, onSuccess }) {
   const [formData, setFormData] = useState({
-    emailOrUsername: '',
-    password: ''
+    emailOrUsername: 'musah.abdulmalikgh@gmail.com',
+    password: 'Kakalika@2025'
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -73,11 +73,17 @@ export default function SignInScreen({ onBack, onSignUpPress, onForgotPassword, 
 
     if (!validateForm()) return;
 
-    // TODO: Replace with actual API call
-    // For demo purposes, simulate different scenarios:
+    // Demo authentication - check against specific credentials
+    const validEmail = 'musah.abdulmalikgh@gmail.com';
+    const validUsername = 'abdulmalikgh@gmail.com';
+    const validPassword = 'Kakalika@2025';
 
-    // Simulate invalid credentials
-    if (formData.password !== 'password123') {
+    const isValidUser = (
+      (formData.emailOrUsername === validEmail || formData.emailOrUsername === validUsername) &&
+      formData.password === validPassword
+    );
+
+    if (!isValidUser) {
       const newAttemptCount = attemptCount + 1;
       setAttemptCount(newAttemptCount);
 
@@ -95,31 +101,12 @@ export default function SignInScreen({ onBack, onSignUpPress, onForgotPassword, 
       return;
     }
 
-    // Simulate unverified account
-    if (formData.emailOrUsername.includes('unverified')) {
-      Alert.alert(
-        'Email Not Verified',
-        'Please verify your email first. Would you like us to resend the verification email?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Resend',
-            onPress: () => {
-              console.log('Resending verification email...');
-              Alert.alert('Success', 'Verification email sent!');
-            }
-          }
-        ]
-      );
-      return;
-    }
-
     // Success
     console.log('Sign in successful:', formData);
     onSuccess?.({
-      email: formData.emailOrUsername,
-      username: formData.emailOrUsername,
-      fullName: 'Demo User' // This would come from API
+      email: validEmail,
+      username: 'abdulmalikgh',
+      fullName: 'Abdul-Malik Musah'
     });
   };
 
