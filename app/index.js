@@ -1,35 +1,51 @@
-import { View, Text, ScrollView } from 'react-native';
-import { Card } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
+import WelcomeScreen from '../components/WelcomeScreen';
+import { View, Text } from 'react-native';
 
 export default function Home() {
+  const [userMode, setUserMode] = useState(null); // null | 'signIn' | 'signUp' | 'guest'
+
+  const handleSignIn = () => {
+    setUserMode('signIn');
+    // TODO: Navigate to Sign In screen
+    console.log('Navigate to Sign In');
+  };
+
+  const handleCreateAccount = () => {
+    setUserMode('signUp');
+    // TODO: Navigate to Create Account screen
+    console.log('Navigate to Create Account');
+  };
+
+  const handleContinueAsGuest = () => {
+    setUserMode('guest');
+    // TODO: Navigate to main app with guest mode
+    console.log('Continue as Guest');
+  };
+
+  // Show temporary placeholder after selection
+  if (userMode) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#2D5F3F' }}>
+        <StatusBar style="light" />
+        <Text style={{ color: 'white', fontSize: 20 }}>
+          {userMode === 'signIn' && 'Sign In Screen (Coming Soon)'}
+          {userMode === 'signUp' && 'Create Account Screen (Coming Soon)'}
+          {userMode === 'guest' && 'Guest Mode - Loading App...'}
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView className="flex-1 bg-white">
+    <>
       <StatusBar style="light" />
-
-      {/* Hero Section */}
-      <View className="bg-islamic-primary p-6 pb-12">
-        <Text className="text-white text-3xl font-bold text-center mb-2">
-          As-salamu alaykum
-        </Text>
-        <Text className="text-islamic-light text-center text-base">
-          Welcome to Ilmify - Your Islamic Learning Platform
-        </Text>
-      </View>
-
-      {/* Main Content */}
-      <View className="p-4 -mt-8">
-        <Card className="mb-4 bg-white" elevation={4}>
-          <Card.Content className="p-4">
-            <Text className="text-2xl font-bold text-islamic-primary mb-2 text-center">
-              Coming Soon
-            </Text>
-            <Text className="text-gray-600 text-center">
-              Islamic Quiz and Tutor platform is under development
-            </Text>
-          </Card.Content>
-        </Card>
-      </View>
-    </ScrollView>
+      <WelcomeScreen
+        onSignIn={handleSignIn}
+        onCreateAccount={handleCreateAccount}
+        onContinueAsGuest={handleContinueAsGuest}
+      />
+    </>
   );
 }

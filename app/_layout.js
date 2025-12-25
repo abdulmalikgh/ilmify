@@ -18,8 +18,8 @@ export default function RootLayout() {
         // Hide native splash immediately so custom splash shows
         await SplashScreenExpo.hideAsync();
 
-        // Keep custom splash for 10 seconds
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        // Keep custom splash for 3 seconds (as per requirements)
+        await new Promise(resolve => setTimeout(resolve, 3000));
         setAppReady(true);
       } catch (e) {
         console.warn(e);
@@ -31,7 +31,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (appReady) {
-      // Hide custom splash immediately after 10 seconds
+      // Hide custom splash and show welcome screen
       setShowSplash(false);
     }
   }, [appReady]);
@@ -57,7 +57,7 @@ export default function RootLayout() {
           name="index"
           options={{
             title: 'Ilmify - Islamic Quiz & Tutor',
-            headerShown: true
+            headerShown: false
           }}
         />
       </Stack>
