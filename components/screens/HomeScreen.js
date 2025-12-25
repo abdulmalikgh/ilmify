@@ -2,6 +2,7 @@ import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, 
 import { useState, useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import PostCard from '../PostCard';
+import CreatePostModal from '../CreatePostModal';
 
 // Demo posts data
 const DEMO_POSTS = [
@@ -51,6 +52,7 @@ export default function HomeScreen({ userData }) {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState(DEMO_POSTS);
+  const [showCreatePost, setShowCreatePost] = useState(false);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -99,6 +101,11 @@ export default function HomeScreen({ userData }) {
   const handleShare = (postId) => {
     console.log('Share post:', postId);
     // TODO: Open share sheet
+  };
+
+  const handleCreatePost = (newPost) => {
+    // Add new post to the top of the feed
+    setPosts(prevPosts => [newPost, ...prevPosts]);
   };
 
   const renderEmptyState = () => {
@@ -246,6 +253,23 @@ export default function HomeScreen({ userData }) {
           )}
         </View>
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setShowCreatePost(true)}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={28} color="#FFFFFF" />
+      </TouchableOpacity>
+
+      {/* Create Post Modal */}
+      <CreatePostModal
+        visible={showCreatePost}
+        onClose={() => setShowCreatePost(false)}
+        onSubmit={handleCreatePost}
+        userData={userData}
+      />
     </View>
   );
 }
@@ -383,5 +407,21 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 14,
     color: '#666',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 80,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#D4AF37',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
 });
