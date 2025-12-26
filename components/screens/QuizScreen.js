@@ -7,10 +7,57 @@ export default function QuizScreen({ userData }) {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Quiz</Text>
+        <View style={styles.pointsContainer}>
+          <Ionicons name="star" size={16} color="#D4AF37" />
+          <Text style={styles.pointsText}>2,450 pts</Text>
+        </View>
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
+
+          {/* Your Stats */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Your Stats</Text>
+
+            <View style={styles.statsGrid}>
+              {/* Total Quizzes */}
+              <View style={styles.statCard}>
+                <View style={[styles.statIconContainer, { backgroundColor: '#2196F320' }]}>
+                  <Ionicons name="clipboard-outline" size={24} color="#2196F3" />
+                </View>
+                <Text style={styles.statValue}>47</Text>
+                <Text style={styles.statLabel}>Total Quizzes</Text>
+              </View>
+
+              {/* Win Rate */}
+              <View style={styles.statCard}>
+                <View style={[styles.statIconContainer, { backgroundColor: '#4CAF5020' }]}>
+                  <Ionicons name="trending-up-outline" size={24} color="#4CAF50" />
+                </View>
+                <Text style={styles.statValue}>78%</Text>
+                <Text style={styles.statLabel}>Win Rate</Text>
+              </View>
+
+              {/* Current Streak */}
+              <View style={styles.statCard}>
+                <View style={[styles.statIconContainer, { backgroundColor: '#FF980020' }]}>
+                  <Ionicons name="flame-outline" size={24} color="#FF9800" />
+                </View>
+                <Text style={styles.statValue}>5</Text>
+                <Text style={styles.statLabel}>Current Streak</Text>
+              </View>
+
+              {/* Best Category */}
+              <View style={styles.statCard}>
+                <View style={[styles.statIconContainer, { backgroundColor: '#9C27B020' }]}>
+                  <Ionicons name="trophy-outline" size={24} color="#9C27B0" />
+                </View>
+                <Text style={styles.statValue}>Quran</Text>
+                <Text style={styles.statLabel}>Best Category</Text>
+              </View>
+            </View>
+          </View>
 
           {/* Pending Challenges */}
           <View style={styles.section}>
@@ -111,11 +158,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  pointsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  pointsText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 4,
   },
   scrollView: {
     flex: 1,
@@ -136,6 +200,45 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#2D5F3F',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -6,
+    marginTop: 12,
+  },
+  statCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    width: '47%',
+    marginHorizontal: '1.5%',
+    marginBottom: 12,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  statIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2D5F3F',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
   },
   badge: {
     backgroundColor: '#FF4444',
