@@ -1,17 +1,25 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function PostCard({ post, onLike, onComment, onShare, onClick }) {
+export default function PostCard({ post, onLike, onComment, onShare, onClick, onAuthorPress }) {
   const formatTime = (timestamp) => {
     // Simple time formatting - in production use a library like moment.js
     return timestamp || '2h ago';
+  };
+
+  const handleAuthorPress = () => {
+    onAuthorPress?.(post.authorId || post.authorUsername);
   };
 
   return (
     <View style={styles.card}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.authorInfo}>
+        <TouchableOpacity
+          style={styles.authorInfo}
+          onPress={handleAuthorPress}
+          activeOpacity={0.7}
+        >
           <Ionicons name="person-circle" size={40} color="#D4AF37" />
           <View style={styles.authorDetails}>
             <Text style={styles.authorName}>{post.authorName}</Text>
@@ -21,7 +29,7 @@ export default function PostCard({ post, onLike, onComment, onShare, onClick }) 
               <Text style={styles.time}>{formatTime(post.timestamp)}</Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.moreButton}>
           <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
         </TouchableOpacity>

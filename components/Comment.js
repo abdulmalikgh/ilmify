@@ -2,24 +2,32 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
-export default function Comment({ comment, onLike, onReply, isNested = false }) {
+export default function Comment({ comment, onLike, onReply, onAuthorPress, isNested = false }) {
   const [showReplies, setShowReplies] = useState(false);
 
   const formatTime = (timestamp) => {
     return timestamp || '2h ago';
   };
 
+  const handleAuthorPress = () => {
+    onAuthorPress?.(comment.authorId || comment.authorName);
+  };
+
   return (
     <View style={[styles.container, isNested && styles.nestedContainer]}>
       <View style={styles.commentContent}>
-        {/* Avatar */}
-        <Ionicons name="person-circle" size={32} color="#D4AF37" />
+        {/* Avatar - Clickable */}
+        <TouchableOpacity onPress={handleAuthorPress} activeOpacity={0.7}>
+          <Ionicons name="person-circle" size={32} color="#D4AF37" />
+        </TouchableOpacity>
 
         {/* Comment Body */}
         <View style={styles.body}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.authorName}>{comment.authorName}</Text>
+            <TouchableOpacity onPress={handleAuthorPress} activeOpacity={0.7}>
+              <Text style={styles.authorName}>{comment.authorName}</Text>
+            </TouchableOpacity>
             <Text style={styles.dot}>•</Text>
             <Text style={styles.time}>{formatTime(comment.timestamp)}</Text>
           </View>
@@ -83,6 +91,7 @@ export default function Comment({ comment, onLike, onReply, isNested = false }) 
               key={reply.id}
               comment={reply}
               onLike={onLike}
+              onAuthorPress={onAuthorPress}
               isNested={true}
             />
           ))}

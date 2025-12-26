@@ -52,11 +52,15 @@ const DEMO_COMMENTS = [
   },
 ];
 
-export default function PostDetailScreen({ post, userData, onBack }) {
+export default function PostDetailScreen({ post, userData, onBack, onAuthorPress }) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState(DEMO_COMMENTS);
   const [sortBy, setSortBy] = useState('top'); // 'top' | 'newest'
   const [localPost, setLocalPost] = useState(post);
+
+  const handleAuthorPress = (userId) => {
+    onAuthorPress?.(userId);
+  };
 
   const formatDate = (timestamp) => {
     // In production, use a library like date-fns or moment
@@ -160,11 +164,17 @@ export default function PostDetailScreen({ post, userData, onBack }) {
         <View style={styles.postCard}>
           {/* Author Info */}
           <View style={styles.authorSection}>
-            <Ionicons name="person-circle" size={48} color="#D4AF37" />
-            <View style={styles.authorDetails}>
-              <Text style={styles.authorName}>{localPost.authorName}</Text>
-              <Text style={styles.authorUsername}>@{localPost.authorUsername}</Text>
-            </View>
+            <TouchableOpacity
+              style={styles.authorInfoClickable}
+              onPress={() => handleAuthorPress(localPost.authorId || localPost.authorUsername)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="person-circle" size={48} color="#D4AF37" />
+              <View style={styles.authorDetails}>
+                <Text style={styles.authorName}>{localPost.authorName}</Text>
+                <Text style={styles.authorUsername}>@{localPost.authorUsername}</Text>
+              </View>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.moreButton}>
               <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
             </TouchableOpacity>
@@ -264,6 +274,7 @@ export default function PostDetailScreen({ post, userData, onBack }) {
                 comment={comment}
                 onLike={handleCommentLike}
                 onReply={handleReply}
+                onAuthorPress={handleAuthorPress}
               />
             ))}
           </View>
@@ -354,6 +365,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  authorInfoClickable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   authorDetails: {
     flex: 1,

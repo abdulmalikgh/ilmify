@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import PostCard from '../PostCard';
 import CreatePostModal from '../CreatePostModal';
 import PostDetailScreen from './PostDetailScreen';
+import ProfileScreen from './ProfileScreen';
 
 // Demo posts data
 const DEMO_POSTS = [
@@ -56,6 +57,8 @@ export default function HomeScreen({ userData }) {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [showPostDetail, setShowPostDetail] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -122,6 +125,17 @@ export default function HomeScreen({ userData }) {
   const handleCreatePost = (newPost) => {
     // Add new post to the top of the feed
     setPosts(prevPosts => [newPost, ...prevPosts]);
+  };
+
+  const handleAuthorPress = (userId) => {
+    console.log('Navigate to user profile:', userId);
+    setSelectedUserId(userId);
+    setShowUserProfile(true);
+  };
+
+  const handleCloseUserProfile = () => {
+    setShowUserProfile(false);
+    setSelectedUserId(null);
   };
 
   const renderEmptyState = () => {
@@ -256,6 +270,7 @@ export default function HomeScreen({ userData }) {
                   onComment={handleComment}
                   onShare={handleShare}
                   onClick={() => handlePostClick(post)}
+                  onAuthorPress={handleAuthorPress}
                 />
               ))}
 
@@ -299,8 +314,23 @@ export default function HomeScreen({ userData }) {
             post={selectedPost}
             userData={userData}
             onBack={handleClosePostDetail}
+            onAuthorPress={handleAuthorPress}
           />
         )}
+      </Modal>
+
+      {/* User Profile Screen */}
+      <Modal
+        visible={showUserProfile}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <ProfileScreen
+          userData={null}
+          isOwnProfile={false}
+          showBackButton={true}
+          onBack={handleCloseUserProfile}
+        />
       </Modal>
     </View>
   );

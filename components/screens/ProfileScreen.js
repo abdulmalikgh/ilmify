@@ -1,7 +1,9 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal, SafeAreaView } from 'react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import PostCard from '../PostCard';
+import EditProfileScreen from './EditProfileScreen';
+import FollowersFollowingScreen from './FollowersFollowingScreen';
 
 // Demo achievement badges
 const ACHIEVEMENT_BADGES = [
@@ -15,8 +17,31 @@ const ACHIEVEMENT_BADGES = [
 // Demo user posts (empty for now)
 const USER_POSTS = [];
 
-export default function ProfileScreen({ userData, onNavigate }) {
+// Interests and knowledge levels (matching onboarding)
+const INTERESTS_MAP = {
+  quran: { label: 'Quran', icon: 'book' },
+  hadith: { label: 'Hadith', icon: 'library' },
+  fiqh: { label: 'Fiqh', icon: 'scale' },
+  seerah: { label: 'Seerah', icon: 'person' },
+  aqeedah: { label: 'Aqeedah', icon: 'heart' },
+  history: { label: 'Islamic History', icon: 'time' },
+  duas: { label: 'Daily Duas', icon: 'hand-right' },
+  arabic: { label: 'Arabic Language', icon: 'language' },
+};
+
+const KNOWLEDGE_LEVEL_MAP = {
+  beginner: { label: 'Beginner', color: '#88cc00', icon: 'leaf' },
+  intermediate: { label: 'Intermediate', color: '#D4AF37', icon: 'book' },
+  advanced: { label: 'Advanced', color: '#2D5F3F', icon: 'school' },
+};
+
+export default function ProfileScreen({ userData, onNavigate, isOwnProfile = true, showBackButton = false, onBack }) {
   const [activeTab, setActiveTab] = useState('posts'); // 'posts' | 'questions' | 'answers' | 'quizResults'
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showFollowersList, setShowFollowersList] = useState(false);
+  const [followersListTab, setFollowersListTab] = useState('followers');
 
   // User stats (in production, these would come from userData)
   const stats = {
@@ -34,18 +59,50 @@ export default function ProfileScreen({ userData, onNavigate }) {
     location: 'Riyadh, Saudi Arabia',
     joinDate: 'December 2024',
     coverImage: null, // URL to cover image
+    interests: userData?.interests || ['quran', 'hadith', 'seerah'],
+    knowledgeLevel: userData?.knowledgeLevel || 'intermediate',
   };
 
   const handleStatPress = (statType) => {
     if (statType === 'followers' || statType === 'following') {
-      console.log(`Navigate to ${statType} list`);
-      // In production: onNavigate?.(statType);
+      setFollowersListTab(statType);
+      setShowFollowersList(true);
     }
   };
 
   const handleEditProfile = () => {
-    console.log('Edit profile');
-    // In production: onNavigate?.('editProfile');
+    setShowEditProfile(true);
+  };
+
+  const handleSaveProfile = (updatedData) => {
+    console.log('Profile updated:', updatedData);
+    // In production: API call to update profile
+    // Then update userData state
+  };
+
+  const handleFollowToggle = () => {
+    setIsFollowing(!isFollowing);
+    // In production: API call to follow/unfollow
+  };
+
+  const handleChallenge = () => {
+    console.log('Challenge user');
+    // In production: onNavigate?.('challengeUser', { userId: userData?.id });
+  };
+
+  const handleShareProfile = () => {
+    console.log('Share profile');
+    // In production: Share sheet
+  };
+
+  const handleReportUser = () => {
+    console.log('Report user');
+    // In production: onNavigate?.('reportUser', { userId: userData?.id });
+  };
+
+  const handleBlockUser = () => {
+    console.log('Block user');
+    // In production: Show confirmation dialog
   };
 
   const renderEmptyState = (tab) => {
@@ -114,8 +171,21 @@ export default function ProfileScreen({ userData, onNavigate }) {
     }
   };
 
+  const Container = showBackButton ? SafeAreaView : View;
+
   return (
-    <View style={styles.container}>
+    <Container style={styles.container}>
+      {/* Header with Back Button (for modal view) */}
+      {showBackButton && (
+        <View style={styles.modalHeader}>
+          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#2D5F3F" />
+          </TouchableOpacity>
+          <Text style={styles.modalHeaderTitle}>Profile</Text>
+          <View style={styles.headerRight} />
+        </View>
+      )}
+
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Cover Image */}
         <View style={styles.coverContainer}>
@@ -126,9 +196,16 @@ export default function ProfileScreen({ userData, onNavigate }) {
               <Ionicons name="image-outline" size={40} color="#FFFFFF50" />
             </View>
           )}
-          <TouchableOpacity style={styles.editCoverButton} onPress={handleEditProfile}>
-            <Ionicons name="camera" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
+          {isOwnProfile && (
+            <TouchableOpacity style={styles.editCoverButton} onPress={handleEditProfile}>
+              <Ionicons name="camera" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          )}
+          {!isOwnProfile && (
+            <TouchableOpacity style={styles.menuButton} onPress={() => setShowMenu(!showMenu)}>
+              <Ionicons name="ellipsis-horizontal" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Profile Info Section */}
@@ -138,20 +215,58 @@ export default function ProfileScreen({ userData, onNavigate }) {
             <View style={styles.profilePicture}>
               <Ionicons name="person-circle" size={100} color="#D4AF37" />
             </View>
-            <TouchableOpacity style={styles.editAvatarButton}>
-              <Ionicons name="camera" size={16} color="#FFFFFF" />
-            </TouchableOpacity>
+            {isOwnProfile && (
+              <TouchableOpacity style={styles.editAvatarButton}>
+                <Ionicons name="camera" size={16} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
           </View>
 
-          {/* Edit Button */}
-          <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
-            <Ionicons name="create-outline" size={18} color="#2D5F3F" />
-            <Text style={styles.editButtonText}>Edit Profile</Text>
-          </TouchableOpacity>
+          {/* Action Buttons */}
+          {isOwnProfile ? (
+            <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
+              <Ionicons name="create-outline" size={18} color="#2D5F3F" />
+              <Text style={styles.editButtonText}>Edit Profile</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.followButton, isFollowing && styles.followingButton]}
+                onPress={handleFollowToggle}
+              >
+                <Ionicons
+                  name={isFollowing ? "checkmark" : "person-add"}
+                  size={18}
+                  color={isFollowing ? "#2D5F3F" : "#FFFFFF"}
+                />
+                <Text style={[styles.followButtonText, isFollowing && styles.followingButtonText]}>
+                  {isFollowing ? 'Following' : 'Follow'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.challengeButton} onPress={handleChallenge}>
+                <Ionicons name="trophy" size={18} color="#2D5F3F" />
+                <Text style={styles.challengeButtonText}>Challenge</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Name and Username */}
           <Text style={styles.profileName}>{userInfo.fullName}</Text>
-          <Text style={styles.profileUsername}>@{userInfo.username}</Text>
+          <View style={styles.usernameRow}>
+            <Text style={styles.profileUsername}>@{userInfo.username}</Text>
+            {userInfo.knowledgeLevel && KNOWLEDGE_LEVEL_MAP[userInfo.knowledgeLevel] && (
+              <View style={[styles.knowledgeBadge, { backgroundColor: KNOWLEDGE_LEVEL_MAP[userInfo.knowledgeLevel].color }]}>
+                <Ionicons
+                  name={KNOWLEDGE_LEVEL_MAP[userInfo.knowledgeLevel].icon}
+                  size={12}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.knowledgeBadgeText}>
+                  {KNOWLEDGE_LEVEL_MAP[userInfo.knowledgeLevel].label}
+                </Text>
+              </View>
+            )}
+          </View>
 
           {/* Bio */}
           {userInfo.bio && <Text style={styles.bio}>{userInfo.bio}</Text>}
@@ -169,6 +284,25 @@ export default function ProfileScreen({ userData, onNavigate }) {
               <Text style={styles.metaText}>Joined {userInfo.joinDate}</Text>
             </View>
           </View>
+
+          {/* Interests */}
+          {userInfo.interests && userInfo.interests.length > 0 && (
+            <View style={styles.interestsSection}>
+              <Text style={styles.interestsTitle}>Learning Interests</Text>
+              <View style={styles.interestsChips}>
+                {userInfo.interests.map((interestId) => {
+                  const interest = INTERESTS_MAP[interestId];
+                  if (!interest) return null;
+                  return (
+                    <View key={interestId} style={styles.interestChipSmall}>
+                      <Ionicons name={interest.icon} size={14} color="#2D5F3F" />
+                      <Text style={styles.interestChipSmallText}>{interest.label}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          )}
 
           {/* Stats Row */}
           <View style={styles.statsRow}>
@@ -269,14 +403,114 @@ export default function ProfileScreen({ userData, onNavigate }) {
         {/* Content Display */}
         <View style={styles.contentContainer}>{renderContent()}</View>
       </ScrollView>
-    </View>
+
+      {/* Three-Dot Menu Modal */}
+      {!isOwnProfile && (
+        <Modal
+          visible={showMenu}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowMenu(false)}
+        >
+          <TouchableOpacity
+            style={styles.menuOverlay}
+            activeOpacity={1}
+            onPress={() => setShowMenu(false)}
+          >
+            <View style={styles.menuModal}>
+              <TouchableOpacity
+                style={styles.menuOption}
+                onPress={() => {
+                  handleShareProfile();
+                  setShowMenu(false);
+                }}
+              >
+                <Ionicons name="share-outline" size={22} color="#2D5F3F" />
+                <Text style={styles.menuOptionText}>Share Profile</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.menuOption}
+                onPress={() => {
+                  handleReportUser();
+                  setShowMenu(false);
+                }}
+              >
+                <Ionicons name="flag-outline" size={22} color="#F44336" />
+                <Text style={[styles.menuOptionText, styles.menuOptionDanger]}>Report User</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.menuOption}
+                onPress={() => {
+                  handleBlockUser();
+                  setShowMenu(false);
+                }}
+              >
+                <Ionicons name="ban-outline" size={22} color="#F44336" />
+                <Text style={[styles.menuOptionText, styles.menuOptionDanger]}>Block User</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={showEditProfile}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <EditProfileScreen
+          userData={userInfo}
+          onBack={() => setShowEditProfile(false)}
+          onSave={handleSaveProfile}
+        />
+      </Modal>
+
+      {/* Followers/Following List Modal */}
+      <Modal
+        visible={showFollowersList}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <FollowersFollowingScreen
+          initialTab={followersListTab}
+          onBack={() => setShowFollowersList(false)}
+          onUserPress={(userId) => {
+            console.log('Navigate to user profile:', userId);
+            // In production: navigate to user's profile
+          }}
+        />
+      </Modal>
+    </Container>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  modalHeaderTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D5F3F',
+  },
+  backButton: {
+    padding: 4,
+    width: 60,
+  },
+  headerRight: {
+    width: 60,
   },
   coverContainer: {
     height: 160,
@@ -360,10 +594,28 @@ const styles = StyleSheet.create({
     color: '#2D5F3F',
     marginBottom: 4,
   },
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
   profileUsername: {
     fontSize: 15,
     color: '#666',
-    marginBottom: 12,
+  },
+  knowledgeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  knowledgeBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   bio: {
     fontSize: 15,
@@ -375,7 +627,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 16,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   metaItem: {
     flexDirection: 'row',
@@ -385,6 +637,36 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: 14,
     color: '#666',
+  },
+  interestsSection: {
+    marginBottom: 16,
+  },
+  interestsTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2D5F3F',
+    marginBottom: 8,
+  },
+  interestsChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  interestChipSmall: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  interestChipSmallText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#2D5F3F',
   },
   statsRow: {
     flexDirection: 'row',
@@ -513,5 +795,88 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  menuButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    backgroundColor: '#00000050',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButtons: {
+    position: 'absolute',
+    top: 16,
+    right: 20,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  followButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2D5F3F',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  followingButton: {
+    backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: '#2D5F3F',
+  },
+  followButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  followingButtonText: {
+    color: '#2D5F3F',
+  },
+  challengeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D4AF37',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  challengeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2D5F3F',
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuModal: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    width: '80%',
+    maxWidth: 300,
+    overflow: 'hidden',
+  },
+  menuOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  menuOptionText: {
+    fontSize: 16,
+    color: '#2D5F3F',
+    fontWeight: '500',
+  },
+  menuOptionDanger: {
+    color: '#F44336',
   },
 });
