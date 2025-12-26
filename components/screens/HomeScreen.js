@@ -38,7 +38,7 @@ const DEMO_POSTS = [
     authorUsername: 'yusuf_ali',
     timestamp: '1d ago',
     category: 'Fiqh',
-    content: 'Question: What is the ruling on combining prayers while traveling? I have a long journey coming up and want to make sure I understand the conditions correctly.',
+    content: 'What is the ruling on combining prayers while traveling? I have a long journey coming up and want to make sure I understand the conditions correctly.',
     likes: 12,
     comments: 15,
     shares: 2,
