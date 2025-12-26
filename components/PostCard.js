@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function PostCard({ post, onLike, onComment, onShare }) {
+export default function PostCard({ post, onLike, onComment, onShare, onClick }) {
   const formatTime = (timestamp) => {
     // Simple time formatting - in production use a library like moment.js
     return timestamp || '2h ago';
@@ -27,8 +27,12 @@ export default function PostCard({ post, onLike, onComment, onShare }) {
         </TouchableOpacity>
       </View>
 
-      {/* Content */}
-      <View style={styles.content}>
+      {/* Content - Clickable */}
+      <TouchableOpacity
+        style={styles.content}
+        onPress={onClick}
+        activeOpacity={0.95}
+      >
         {post.category && (
           <View style={styles.categoryBadge}>
             <Ionicons name="bookmark" size={12} color="#D4AF37" />
@@ -36,7 +40,7 @@ export default function PostCard({ post, onLike, onComment, onShare }) {
           </View>
         )}
         <Text style={styles.postText}>{post.content}</Text>
-      </View>
+      </TouchableOpacity>
 
       {/* Actions */}
       <View style={styles.actions}>

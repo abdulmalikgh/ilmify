@@ -1,8 +1,9 @@
-import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity, Modal } from 'react-native';
 import { useState, useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import PostCard from '../PostCard';
 import CreatePostModal from '../CreatePostModal';
+import PostDetailScreen from './PostDetailScreen';
 
 // Demo posts data
 const DEMO_POSTS = [
@@ -53,6 +54,8 @@ export default function HomeScreen({ userData }) {
   const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState(DEMO_POSTS);
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [showPostDetail, setShowPostDetail] = useState(false);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -94,8 +97,21 @@ export default function HomeScreen({ userData }) {
   };
 
   const handleComment = (postId) => {
-    console.log('Comment on post:', postId);
-    // TODO: Navigate to post detail/comments
+    const post = posts.find(p => p.id === postId);
+    if (post) {
+      setSelectedPost(post);
+      setShowPostDetail(true);
+    }
+  };
+
+  const handlePostClick = (post) => {
+    setSelectedPost(post);
+    setShowPostDetail(true);
+  };
+
+  const handleClosePostDetail = () => {
+    setShowPostDetail(false);
+    setSelectedPost(null);
   };
 
   const handleShare = (postId) => {
@@ -239,6 +255,7 @@ export default function HomeScreen({ userData }) {
                   onLike={handleLike}
                   onComment={handleComment}
                   onShare={handleShare}
+                  onClick={() => handlePostClick(post)}
                 />
               ))}
 
@@ -270,6 +287,21 @@ export default function HomeScreen({ userData }) {
         onSubmit={handleCreatePost}
         userData={userData}
       />
+
+      {/* Post Detail Screen */}
+      <Modal
+        visible={showPostDetail && !!selectedPost}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        {selectedPost && (
+          <PostDetailScreen
+            post={selectedPost}
+            userData={userData}
+            onBack={handleClosePostDetail}
+          />
+        )}
+      </Modal>
     </View>
   );
 }
