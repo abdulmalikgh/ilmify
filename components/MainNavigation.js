@@ -7,11 +7,13 @@ import ExploreScreen from './screens/ExploreScreen';
 import QuizScreen from './screens/QuizScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import CategoryDetailScreen from './screens/CategoryDetailScreen';
 
 export default function MainNavigation({ userData }) {
   const [activeTab, setActiveTab] = useState('home');
   const [notificationCount, setNotificationCount] = useState(5); // Demo count
   const [challengeCount, setChallengeCount] = useState(2); // Demo count
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const tabs = [
     {
@@ -49,13 +51,28 @@ export default function MainNavigation({ userData }) {
   ];
 
   const renderScreen = () => {
+    // Show category detail if a category is selected and we're on quiz tab
+    if (activeTab === 'quiz' && selectedCategory) {
+      return (
+        <CategoryDetailScreen
+          category={selectedCategory}
+          onBack={() => setSelectedCategory(null)}
+        />
+      );
+    }
+
     switch (activeTab) {
       case 'home':
         return <HomeScreen userData={userData} />;
       case 'explore':
         return <ExploreScreen userData={userData} />;
       case 'quiz':
-        return <QuizScreen userData={userData} />;
+        return (
+          <QuizScreen
+            userData={userData}
+            onCategoryPress={(category) => setSelectedCategory(category)}
+          />
+        );
       case 'notifications':
         return <NotificationsScreen userData={userData} />;
       case 'profile':
@@ -82,7 +99,10 @@ export default function MainNavigation({ userData }) {
             <TouchableOpacity
               key={tab.id}
               style={styles.tabButton}
-              onPress={() => setActiveTab(tab.id)}
+              onPress={() => {
+                setActiveTab(tab.id);
+                setSelectedCategory(null); // Reset category when changing tabs
+              }}
               activeOpacity={0.7}
             >
               <View style={styles.tabIconContainer}>
