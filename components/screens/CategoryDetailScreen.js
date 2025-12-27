@@ -1,7 +1,14 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import PracticePreQuizScreen from './PracticePreQuizScreen';
+import QuizQuestionScreen from './QuizQuestionScreen';
+import QuizResultsScreen from './QuizResultsScreen';
 
 export default function CategoryDetailScreen({ category, onBack }) {
+  const [currentView, setCurrentView] = useState('detail'); // detail, preQuiz, quiz, results
+  const [selectedDifficulty, setSelectedDifficulty] = useState(null);
+  const [quizResults, setQuizResults] = useState(null);
   // Mock data based on category
   const getCategoryData = () => {
     const categories = {
@@ -64,6 +71,65 @@ export default function CategoryDetailScreen({ category, onBack }) {
   };
 
   const data = getCategoryData();
+
+  // Handler functions
+  const handleDifficultySelect = (difficulty) => {
+    setSelectedDifficulty(difficulty);
+    setCurrentView('preQuiz');
+  };
+
+  const handleStartQuiz = () => {
+    setCurrentView('quiz');
+  };
+
+  const handleQuizComplete = (results) => {
+    setQuizResults(results);
+    setCurrentView('results');
+  };
+
+  const handleRetry = () => {
+    setCurrentView('quiz');
+  };
+
+  const handleBackToCategory = () => {
+    setCurrentView('detail');
+    setSelectedDifficulty(null);
+    setQuizResults(null);
+  };
+
+  // Conditional rendering based on current view
+  if (currentView === 'preQuiz' && selectedDifficulty) {
+    return (
+      <PracticePreQuizScreen
+        category={category}
+        difficulty={selectedDifficulty}
+        onBack={handleBackToCategory}
+        onStart={handleStartQuiz}
+      />
+    );
+  }
+
+  if (currentView === 'quiz' && selectedDifficulty) {
+    return (
+      <QuizQuestionScreen
+        category={category}
+        difficulty={selectedDifficulty}
+        onComplete={handleQuizComplete}
+        onExit={handleBackToCategory}
+      />
+    );
+  }
+
+  if (currentView === 'results' && quizResults) {
+    return (
+      <QuizResultsScreen
+        results={quizResults}
+        onRetry={handleRetry}
+        onBackToCategory={handleBackToCategory}
+        onBackToHome={onBack}
+      />
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -129,7 +195,11 @@ export default function CategoryDetailScreen({ category, onBack }) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Difficulty Selection</Text>
 
-            <TouchableOpacity style={styles.difficultyCard} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.difficultyCard}
+              activeOpacity={0.7}
+              onPress={() => handleDifficultySelect('Easy')}
+            >
               <View style={styles.difficultyInfo}>
                 <View style={styles.difficultyHeader}>
                   <Text style={styles.difficultyTitle}>Easy</Text>
@@ -144,7 +214,11 @@ export default function CategoryDetailScreen({ category, onBack }) {
               <Ionicons name="chevron-forward" size={24} color="#999" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.difficultyCard} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.difficultyCard}
+              activeOpacity={0.7}
+              onPress={() => handleDifficultySelect('Medium')}
+            >
               <View style={styles.difficultyInfo}>
                 <View style={styles.difficultyHeader}>
                   <Text style={styles.difficultyTitle}>Medium</Text>
@@ -160,7 +234,11 @@ export default function CategoryDetailScreen({ category, onBack }) {
               <Ionicons name="chevron-forward" size={24} color="#999" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.difficultyCard} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.difficultyCard}
+              activeOpacity={0.7}
+              onPress={() => handleDifficultySelect('Hard')}
+            >
               <View style={styles.difficultyInfo}>
                 <View style={styles.difficultyHeader}>
                   <Text style={styles.difficultyTitle}>Hard</Text>
@@ -182,7 +260,11 @@ export default function CategoryDetailScreen({ category, onBack }) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Actions</Text>
 
-            <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              activeOpacity={0.7}
+              onPress={() => handleDifficultySelect('Medium')}
+            >
               <View style={[styles.actionIconContainer, { backgroundColor: '#2D5F3F' }]}>
                 <Ionicons name="play-circle-outline" size={24} color="#FFFFFF" />
               </View>
