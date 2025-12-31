@@ -5,6 +5,10 @@ import PostCard from '../PostCard';
 import CreatePostModal from '../CreatePostModal';
 import PostDetailScreen from './PostDetailScreen';
 import ProfileScreen from './ProfileScreen';
+import SelectOpponentScreen from './SelectOpponentScreen';
+import ChallengeConfirmationModal from '../modals/ChallengeConfirmationModal';
+import ChallengeSentScreen from './ChallengeSentScreen';
+import IncomingChallengeModal from '../modals/IncomingChallengeModal';
 
 // Demo posts data
 const DEMO_POSTS = [
@@ -23,6 +27,27 @@ const DEMO_POSTS = [
   },
   {
     id: '2',
+    type: 'quiz_result',
+    authorName: 'Fatima Hassan',
+    authorUsername: 'fatima_h',
+    timestamp: '3h ago',
+    category: 'Hadith',
+    content: 'Just completed a Hadith quiz! Think you can beat my score?',
+    quizResult: {
+      score: 85,
+      correct: 17,
+      total: 20,
+      time: '3:45',
+      category: 'Hadith',
+    },
+    likes: 42,
+    comments: 12,
+    shares: 8,
+    isLiked: false,
+    isBookmarked: false,
+  },
+  {
+    id: '3',
     authorName: 'Fatima Hassan',
     authorUsername: 'fatima_h',
     timestamp: '5h ago',
@@ -35,7 +60,28 @@ const DEMO_POSTS = [
     isBookmarked: true,
   },
   {
-    id: '3',
+    id: '4',
+    type: 'quiz_result',
+    authorName: 'Yusuf Ali',
+    authorUsername: 'yusuf_ali',
+    timestamp: '1d ago',
+    category: 'Quran',
+    content: 'New personal best on Quran quiz! Alhamdulillah',
+    quizResult: {
+      score: 95,
+      correct: 19,
+      total: 20,
+      time: '2:30',
+      category: 'Quran',
+    },
+    likes: 78,
+    comments: 18,
+    shares: 15,
+    isLiked: true,
+    isBookmarked: false,
+  },
+  {
+    id: '5',
     authorName: 'Yusuf Ali',
     authorUsername: 'yusuf_ali',
     timestamp: '1d ago',
@@ -59,6 +105,25 @@ export default function HomeScreen({ userData }) {
   const [showPostDetail, setShowPostDetail] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [showSelectOpponent, setShowSelectOpponent] = useState(false);
+  const [showChallengeConfirm, setShowChallengeConfirm] = useState(false);
+  const [showChallengeSent, setShowChallengeSent] = useState(false);
+  const [selectedOpponent, setSelectedOpponent] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showIncomingChallenge, setShowIncomingChallenge] = useState(false);
+  const [incomingChallenge, setIncomingChallenge] = useState(null);
+
+  // Demo incoming challenge data
+  const DEMO_INCOMING_CHALLENGE = {
+    id: 'challenge_1',
+    challengerName: 'Ahmad Ibrahim',
+    challengerUsername: 'ahmad_i',
+    category: 'Quran',
+    difficulty: 'Intermediate',
+    questions: 5,
+    type: 'offline', // or 'online'
+    expiresAt: new Date(Date.now() + 23 * 60 * 60 * 1000).toISOString(), // 23 hours from now
+  };
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -122,6 +187,92 @@ export default function HomeScreen({ userData }) {
     // TODO: Open share sheet
   };
 
+  const handleChallenge = (post) => {
+    console.log('Challenge from quiz result:', post);
+
+    // Create opponent object from the post author
+    const opponent = {
+      id: post.authorId || post.authorUsername,
+      name: post.authorName,
+      username: post.authorUsername,
+      isOnline: Math.random() > 0.5, // Demo: random online status
+      lastActive: '2h ago',
+      isFollowing: false,
+      points: 2450,
+      categoryStats: {
+        Quran: { accuracy: 88, gamesPlayed: 32 },
+        Hadith: { accuracy: 85, gamesPlayed: 28 },
+        Seerah: { accuracy: 90, gamesPlayed: 35 },
+        Fiqh: { accuracy: 78, gamesPlayed: 22 },
+      },
+      skillLevel: 'intermediate',
+    };
+
+    setSelectedOpponent(opponent);
+    setSelectedCategory(post.quizResult?.category || null);
+    setShowChallengeConfirm(true);
+  };
+
+  const handleSelectOpponent = (opponent, category) => {
+    setSelectedOpponent(opponent);
+    setSelectedCategory(category);
+    setShowSelectOpponent(false);
+    setShowChallengeConfirm(true);
+  };
+
+  const handleConfirmChallenge = () => {
+    console.log('Challenge confirmed:', { opponent: selectedOpponent, category: selectedCategory });
+    setShowChallengeConfirm(false);
+
+    if (!selectedOpponent.isOnline) {
+      setShowChallengeSent(true);
+    } else {
+      console.log('Starting quiz immediately for online opponent');
+    }
+  };
+
+  const handleStartQuiz = (results) => {
+    console.log('Challenge quiz completed with results:', results);
+    // In production: Save challenge answers to API
+    setShowChallengeSent(false);
+
+    // Show success message
+    alert(`Quiz completed! Score: ${results.score}%\n\nYour answers have been saved. We'll notify you when ${selectedOpponent?.name} accepts the challenge!`);
+  };
+
+  const handleBackFromChallengeSent = () => {
+    setShowChallengeSent(false);
+    setSelectedOpponent(null);
+    setSelectedCategory(null);
+  };
+
+  const handleShowIncomingChallenge = () => {
+    setIncomingChallenge(DEMO_INCOMING_CHALLENGE);
+    setShowIncomingChallenge(true);
+  };
+
+  const handleAcceptChallenge = (challenge) => {
+    console.log('Accepting challenge:', challenge);
+    setShowIncomingChallenge(false);
+
+    // In production: Accept challenge via API
+    // API call: acceptChallenge(challenge.id)
+
+    // Navigate to quiz screen to start the challenge
+    alert(`Challenge accepted! Starting ${challenge.category} quiz...`);
+    // TODO: Navigate to QuizQuestionScreen with challenge data
+  };
+
+  const handleDeclineChallenge = (challenge) => {
+    console.log('Declining challenge:', challenge);
+    setShowIncomingChallenge(false);
+
+    // In production: Decline challenge via API
+    // API call: declineChallenge(challenge.id)
+
+    alert('Challenge declined');
+  };
+
   const handleCreatePost = (newPost) => {
     // Add new post to the top of the feed
     setPosts(prevPosts => [newPost, ...prevPosts]);
@@ -182,9 +333,21 @@ export default function HomeScreen({ userData }) {
             {userData?.fullName || userData?.username || 'Friend'}
           </Text>
         </View>
-        <TouchableOpacity>
-          <Ionicons name="search" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity>
+            <Ionicons name="search" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={handleShowIncomingChallenge}
+          >
+            <Ionicons name="notifications" size={24} color="#FFFFFF" />
+            {/* Demo notification badge */}
+            <View style={styles.notificationBadge}>
+              <Text style={styles.notificationBadgeText}>1</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Quick Stats */}
@@ -269,6 +432,7 @@ export default function HomeScreen({ userData }) {
                   onLike={handleLike}
                   onComment={handleComment}
                   onShare={handleShare}
+                  onChallenge={handleChallenge}
                   onClick={() => handlePostClick(post)}
                   onAuthorPress={handleAuthorPress}
                 />
@@ -332,6 +496,51 @@ export default function HomeScreen({ userData }) {
           onBack={handleCloseUserProfile}
         />
       </Modal>
+
+      {/* Select Opponent Modal */}
+      <Modal
+        visible={showSelectOpponent}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <SelectOpponentScreen
+          category={selectedCategory}
+          onBack={() => setShowSelectOpponent(false)}
+          onSelectOpponent={handleSelectOpponent}
+        />
+      </Modal>
+
+      {/* Challenge Confirmation Modal */}
+      <ChallengeConfirmationModal
+        visible={showChallengeConfirm}
+        opponent={selectedOpponent}
+        category={selectedCategory}
+        onCancel={() => setShowChallengeConfirm(false)}
+        onConfirm={handleConfirmChallenge}
+      />
+
+      {/* Challenge Sent Screen Modal */}
+      <Modal
+        visible={showChallengeSent}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <ChallengeSentScreen
+          opponent={selectedOpponent}
+          category={selectedCategory}
+          onStartQuiz={handleStartQuiz}
+          onBack={handleBackFromChallengeSent}
+        />
+      </Modal>
+
+      {/* Incoming Challenge Modal */}
+      <IncomingChallengeModal
+        visible={showIncomingChallenge}
+        challenge={incomingChallenge}
+        onAccept={handleAcceptChallenge}
+        onDecline={handleDeclineChallenge}
+        onClose={() => setShowIncomingChallenge(false)}
+      />
     </View>
   );
 }
@@ -359,6 +568,32 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  notificationButton: {
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#FF4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#2D5F3F',
+  },
+  notificationBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: 'bold',
   },
   statsCard: {
     backgroundColor: '#FFFFFF',

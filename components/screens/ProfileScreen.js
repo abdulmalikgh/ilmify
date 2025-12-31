@@ -4,6 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import PostCard from '../PostCard';
 import EditProfileScreen from './EditProfileScreen';
 import FollowersFollowingScreen from './FollowersFollowingScreen';
+import SelectOpponentScreen from './SelectOpponentScreen';
+import ChallengeConfirmationModal from '../modals/ChallengeConfirmationModal';
+import ChallengeSentScreen from './ChallengeSentScreen';
 
 // Demo achievement badges
 const ACHIEVEMENT_BADGES = [
@@ -42,6 +45,11 @@ export default function ProfileScreen({ userData, onNavigate, isOwnProfile = tru
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showFollowersList, setShowFollowersList] = useState(false);
   const [followersListTab, setFollowersListTab] = useState('followers');
+  const [showSelectOpponent, setShowSelectOpponent] = useState(false);
+  const [showChallengeConfirm, setShowChallengeConfirm] = useState(false);
+  const [showChallengeSent, setShowChallengeSent] = useState(false);
+  const [selectedOpponent, setSelectedOpponent] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   // User stats (in production, these would come from userData)
   const stats = {
@@ -86,8 +94,60 @@ export default function ProfileScreen({ userData, onNavigate, isOwnProfile = tru
   };
 
   const handleChallenge = () => {
-    console.log('Challenge user');
-    // In production: onNavigate?.('challengeUser', { userId: userData?.id });
+    // Create opponent object from the current user profile
+    const opponent = {
+      id: userData?.id || 'user1',
+      name: userInfo.fullName,
+      username: userInfo.username,
+      isOnline: Math.random() > 0.5, // Demo: random online status
+      lastActive: '2h ago',
+      isFollowing: isFollowing,
+      points: stats.points,
+      categoryStats: {
+        Quran: { accuracy: 88, gamesPlayed: 32 },
+        Hadith: { accuracy: 85, gamesPlayed: 28 },
+        Seerah: { accuracy: 90, gamesPlayed: 35 },
+        Fiqh: { accuracy: 78, gamesPlayed: 22 },
+      },
+      skillLevel: 'intermediate',
+    };
+
+    setSelectedOpponent(opponent);
+    setSelectedCategory(null);
+    setShowChallengeConfirm(true);
+  };
+
+  const handleSelectOpponent = (opponent, category) => {
+    setSelectedOpponent(opponent);
+    setSelectedCategory(category);
+    setShowSelectOpponent(false);
+    setShowChallengeConfirm(true);
+  };
+
+  const handleConfirmChallenge = () => {
+    console.log('Challenge confirmed:', { opponent: selectedOpponent, category: selectedCategory });
+    setShowChallengeConfirm(false);
+
+    if (!selectedOpponent.isOnline) {
+      setShowChallengeSent(true);
+    } else {
+      console.log('Starting quiz immediately for online opponent');
+    }
+  };
+
+  const handleStartQuiz = (results) => {
+    console.log('Challenge quiz completed with results:', results);
+    // In production: Save challenge answers to API
+    setShowChallengeSent(false);
+
+    // Show success message
+    alert(`Quiz completed! Score: ${results.score}%\n\nYour answers have been saved. We'll notify you when ${selectedOpponent?.name} accepts the challenge!`);
+  };
+
+  const handleBackFromChallengeSent = () => {
+    setShowChallengeSent(false);
+    setSelectedOpponent(null);
+    setSelectedCategory(null);
   };
 
   const handleShareProfile = () => {
@@ -479,6 +539,42 @@ export default function ProfileScreen({ userData, onNavigate, isOwnProfile = tru
             console.log('Navigate to user profile:', userId);
             // In production: navigate to user's profile
           }}
+        />
+      </Modal>
+
+      {/* Select Opponent Modal */}
+      <Modal
+        visible={showSelectOpponent}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <SelectOpponentScreen
+          category={selectedCategory}
+          onBack={() => setShowSelectOpponent(false)}
+          onSelectOpponent={handleSelectOpponent}
+        />
+      </Modal>
+
+      {/* Challenge Confirmation Modal */}
+      <ChallengeConfirmationModal
+        visible={showChallengeConfirm}
+        opponent={selectedOpponent}
+        category={selectedCategory}
+        onCancel={() => setShowChallengeConfirm(false)}
+        onConfirm={handleConfirmChallenge}
+      />
+
+      {/* Challenge Sent Screen Modal */}
+      <Modal
+        visible={showChallengeSent}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <ChallengeSentScreen
+          opponent={selectedOpponent}
+          category={selectedCategory}
+          onStartQuiz={handleStartQuiz}
+          onBack={handleBackFromChallengeSent}
         />
       </Modal>
     </Container>

@@ -1,7 +1,116 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import SelectOpponentScreen from './SelectOpponentScreen';
+import ChallengeConfirmationModal from '../modals/ChallengeConfirmationModal';
+import ChallengeSentScreen from './ChallengeSentScreen';
+import IncomingChallengeModal from '../modals/IncomingChallengeModal';
 
 export default function QuizScreen({ userData, onCategoryPress }) {
+  const [showSelectOpponent, setShowSelectOpponent] = useState(false);
+  const [showChallengeConfirm, setShowChallengeConfirm] = useState(false);
+  const [showChallengeSent, setShowChallengeSent] = useState(false);
+  const [selectedOpponent, setSelectedOpponent] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showIncomingChallenge, setShowIncomingChallenge] = useState(false);
+  const [incomingChallenge, setIncomingChallenge] = useState(null);
+
+  // Demo incoming challenge data
+  const DEMO_INCOMING_CHALLENGES = [
+    {
+      id: 'challenge_1',
+      challengerName: 'Ahmad Ibrahim',
+      challengerUsername: 'ahmad_i',
+      category: 'Quran',
+      difficulty: 'Intermediate',
+      questions: 5,
+      type: 'offline',
+      expiresAt: new Date(Date.now() + 23 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: 'challenge_2',
+      challengerName: 'Fatima Hassan',
+      challengerUsername: 'fatima_h',
+      category: 'Hadith',
+      difficulty: 'Advanced',
+      questions: 5,
+      type: 'online',
+      expiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
+    },
+  ];
+
+  const handleChallengeClick = (category = null) => {
+    setSelectedCategory(category);
+    setShowSelectOpponent(true);
+  };
+
+  const handleSelectOpponent = (opponent, category) => {
+    setSelectedOpponent(opponent);
+    setSelectedCategory(category);
+    setShowSelectOpponent(false);
+    setShowChallengeConfirm(true);
+  };
+
+  const handleConfirmChallenge = () => {
+    // In production: Send API call to create challenge
+    console.log('Challenge confirmed:', { opponent: selectedOpponent, category: selectedCategory });
+    setShowChallengeConfirm(false);
+
+    // Show ChallengeSentScreen for offline opponents
+    if (!selectedOpponent.isOnline) {
+      setShowChallengeSent(true);
+    } else {
+      // For online opponents, directly start the quiz
+      // TODO: Navigate to quiz screen
+      console.log('Starting quiz immediately for online opponent');
+    }
+  };
+
+  const handleStartQuiz = (results) => {
+    console.log('Challenge quiz completed with results:', results);
+    // In production: Save challenge answers to API
+    // API call: saveChallengeAnswers({ challengeId, results, opponentId: selectedOpponent.id })
+
+    // Close the Challenge Sent screen and show success message
+    setShowChallengeSent(false);
+
+    // TODO: Show a success screen or navigate back to quiz home with confirmation
+    alert(`Quiz completed! Score: ${results.score}%\n\nYour answers have been saved. We'll notify you when ${selectedOpponent?.name} accepts the challenge!`);
+  };
+
+  const handleBackFromChallengeSent = () => {
+    setShowChallengeSent(false);
+    setSelectedOpponent(null);
+    setSelectedCategory(null);
+  };
+
+  const handleIncomingChallengeClick = (challenge) => {
+    setIncomingChallenge(challenge);
+    setShowIncomingChallenge(true);
+  };
+
+  const handleAcceptChallenge = (challenge) => {
+    console.log('Accepting challenge:', challenge);
+    setShowIncomingChallenge(false);
+
+    // In production: Accept challenge via API
+    // API call: acceptChallenge(challenge.id)
+
+    // Navigate to quiz screen to start the challenge
+    alert(`Challenge accepted! Starting ${challenge.category} quiz...`);
+    // TODO: Navigate to QuizQuestionScreen with challenge data
+  };
+
+  const handleDeclineChallenge = (challenge) => {
+    console.log('Declining challenge:', challenge);
+    setShowIncomingChallenge(false);
+
+    // In production: Decline challenge via API
+    // API call: declineChallenge(challenge.id)
+
+    alert('Challenge declined');
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -80,7 +189,11 @@ export default function QuizScreen({ userData, onCategoryPress }) {
                   <TouchableOpacity style={styles.practiceBtn} activeOpacity={0.7}>
                     <Text style={styles.practiceBtnText}>Practice</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.challengeBtn} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    style={styles.challengeBtn}
+                    activeOpacity={0.7}
+                    onPress={() => handleChallengeClick('Quran')}
+                  >
                     <Text style={styles.challengeBtnText}>Challenge</Text>
                   </TouchableOpacity>
                 </View>
@@ -102,7 +215,11 @@ export default function QuizScreen({ userData, onCategoryPress }) {
                   <TouchableOpacity style={styles.practiceBtn} activeOpacity={0.7}>
                     <Text style={styles.practiceBtnText}>Practice</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.challengeBtn} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    style={styles.challengeBtn}
+                    activeOpacity={0.7}
+                    onPress={() => handleChallengeClick('Hadith')}
+                  >
                     <Text style={styles.challengeBtnText}>Challenge</Text>
                   </TouchableOpacity>
                 </View>
@@ -124,7 +241,11 @@ export default function QuizScreen({ userData, onCategoryPress }) {
                   <TouchableOpacity style={styles.practiceBtn} activeOpacity={0.7}>
                     <Text style={styles.practiceBtnText}>Practice</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.challengeBtn} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    style={styles.challengeBtn}
+                    activeOpacity={0.7}
+                    onPress={() => handleChallengeClick('Fiqh')}
+                  >
                     <Text style={styles.challengeBtnText}>Challenge</Text>
                   </TouchableOpacity>
                 </View>
@@ -146,7 +267,11 @@ export default function QuizScreen({ userData, onCategoryPress }) {
                   <TouchableOpacity style={styles.practiceBtn} activeOpacity={0.7}>
                     <Text style={styles.practiceBtnText}>Practice</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.challengeBtn} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    style={styles.challengeBtn}
+                    activeOpacity={0.7}
+                    onPress={() => handleChallengeClick('Seerah')}
+                  >
                     <Text style={styles.challengeBtnText}>Challenge</Text>
                   </TouchableOpacity>
                 </View>
@@ -168,7 +293,11 @@ export default function QuizScreen({ userData, onCategoryPress }) {
                   <TouchableOpacity style={styles.practiceBtn} activeOpacity={0.7}>
                     <Text style={styles.practiceBtnText}>Practice</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.challengeBtn} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    style={styles.challengeBtn}
+                    activeOpacity={0.7}
+                    onPress={() => handleChallengeClick('Aqeedah')}
+                  >
                     <Text style={styles.challengeBtnText}>Challenge</Text>
                   </TouchableOpacity>
                 </View>
@@ -190,7 +319,11 @@ export default function QuizScreen({ userData, onCategoryPress }) {
                   <TouchableOpacity style={styles.practiceBtn} activeOpacity={0.7}>
                     <Text style={styles.practiceBtnText}>Practice</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.challengeBtn} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    style={styles.challengeBtn}
+                    activeOpacity={0.7}
+                    onPress={() => handleChallengeClick('History')}
+                  >
                     <Text style={styles.challengeBtnText}>Challenge</Text>
                   </TouchableOpacity>
                 </View>
@@ -213,7 +346,11 @@ export default function QuizScreen({ userData, onCategoryPress }) {
               <Ionicons name="chevron-forward" size={24} color="#999" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionCard} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.actionCard}
+              activeOpacity={0.7}
+              onPress={() => handleChallengeClick(null)}
+            >
               <View style={[styles.actionIcon, { backgroundColor: '#D4AF3720' }]}>
                 <Ionicons name="people" size={32} color="#D4AF37" />
               </View>
@@ -234,33 +371,78 @@ export default function QuizScreen({ userData, onCategoryPress }) {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.challengeCard} activeOpacity={0.7}>
-              <View style={styles.challengeAvatar}>
-                <Ionicons name="person-circle" size={48} color="#D4AF37" />
-              </View>
-              <View style={styles.challengeInfo}>
-                <Text style={styles.challengeName}>Challenge from Ahmad</Text>
-                <Text style={styles.challengeCategory}>Category: Quran</Text>
-                <Text style={styles.challengeTime}>2 hours ago</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color="#999" />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.challengeCard} activeOpacity={0.7}>
-              <View style={styles.challengeAvatar}>
-                <Ionicons name="person-circle" size={48} color="#D4AF37" />
-              </View>
-              <View style={styles.challengeInfo}>
-                <Text style={styles.challengeName}>Challenge from Fatima</Text>
-                <Text style={styles.challengeCategory}>Category: Hadith</Text>
-                <Text style={styles.challengeTime}>5 hours ago</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color="#999" />
-            </TouchableOpacity>
+            {DEMO_INCOMING_CHALLENGES.map((challenge) => (
+              <TouchableOpacity
+                key={challenge.id}
+                style={styles.challengeCard}
+                activeOpacity={0.7}
+                onPress={() => handleIncomingChallengeClick(challenge)}
+              >
+                <View style={styles.challengeAvatar}>
+                  <Ionicons name="person-circle" size={48} color="#D4AF37" />
+                  {challenge.type === 'online' && (
+                    <View style={styles.onlineIndicatorSmall} />
+                  )}
+                </View>
+                <View style={styles.challengeInfo}>
+                  <Text style={styles.challengeName}>Challenge from {challenge.challengerName}</Text>
+                  <Text style={styles.challengeCategory}>Category: {challenge.category}</Text>
+                  <Text style={styles.challengeTime}>
+                    {challenge.type === 'online' ? 'Online now' : '2 hours ago'}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#999" />
+              </TouchableOpacity>
+            ))}
           </View>
 
         </View>
       </ScrollView>
+
+      {/* Select Opponent Modal */}
+      <Modal
+        visible={showSelectOpponent}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <SelectOpponentScreen
+          category={selectedCategory}
+          onBack={() => setShowSelectOpponent(false)}
+          onSelectOpponent={handleSelectOpponent}
+        />
+      </Modal>
+
+      {/* Challenge Confirmation Modal */}
+      <ChallengeConfirmationModal
+        visible={showChallengeConfirm}
+        opponent={selectedOpponent}
+        category={selectedCategory}
+        onCancel={() => setShowChallengeConfirm(false)}
+        onConfirm={handleConfirmChallenge}
+      />
+
+      {/* Challenge Sent Screen Modal */}
+      <Modal
+        visible={showChallengeSent}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <ChallengeSentScreen
+          opponent={selectedOpponent}
+          category={selectedCategory}
+          onStartQuiz={handleStartQuiz}
+          onBack={handleBackFromChallengeSent}
+        />
+      </Modal>
+
+      {/* Incoming Challenge Modal */}
+      <IncomingChallengeModal
+        visible={showIncomingChallenge}
+        challenge={incomingChallenge}
+        onAccept={handleAcceptChallenge}
+        onDecline={handleDeclineChallenge}
+        onClose={() => setShowIncomingChallenge(false)}
+      />
     </View>
   );
 }
@@ -513,5 +695,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#D4AF37',
     fontWeight: '600',
+  },
+  onlineIndicatorSmall: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#4CAF50',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
 });

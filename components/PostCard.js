@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function PostCard({ post, onLike, onComment, onShare, onClick, onAuthorPress }) {
+export default function PostCard({ post, onLike, onComment, onShare, onClick, onAuthorPress, onChallenge }) {
   const formatTime = (timestamp) => {
     // Simple time formatting - in production use a library like moment.js
     return timestamp || '2h ago';
@@ -9,6 +9,10 @@ export default function PostCard({ post, onLike, onComment, onShare, onClick, on
 
   const handleAuthorPress = () => {
     onAuthorPress?.(post.authorId || post.authorUsername);
+  };
+
+  const handleChallenge = () => {
+    onChallenge?.(post);
   };
 
   return (
@@ -48,6 +52,42 @@ export default function PostCard({ post, onLike, onComment, onShare, onClick, on
           </View>
         )}
         <Text style={styles.postText}>{post.content}</Text>
+
+        {/* Quiz Result Card */}
+        {post.type === 'quiz_result' && post.quizResult && (
+          <View style={styles.quizResultCard}>
+            <View style={styles.quizResultHeader}>
+              <Ionicons name="trophy" size={24} color="#D4AF37" />
+              <Text style={styles.quizResultTitle}>Quiz Result</Text>
+            </View>
+
+            <View style={styles.quizResultStats}>
+              <View style={styles.quizResultStat}>
+                <Text style={styles.quizResultStatValue}>{post.quizResult.score}%</Text>
+                <Text style={styles.quizResultStatLabel}>Score</Text>
+              </View>
+              <View style={styles.quizResultDivider} />
+              <View style={styles.quizResultStat}>
+                <Text style={styles.quizResultStatValue}>{post.quizResult.correct}/{post.quizResult.total}</Text>
+                <Text style={styles.quizResultStatLabel}>Correct</Text>
+              </View>
+              <View style={styles.quizResultDivider} />
+              <View style={styles.quizResultStat}>
+                <Text style={styles.quizResultStatValue}>{post.quizResult.time}</Text>
+                <Text style={styles.quizResultStatLabel}>Time</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.challengeMeButton}
+              onPress={handleChallenge}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="flash" size={18} color="#FFFFFF" />
+              <Text style={styles.challengeMeButtonText}>Challenge Me</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </TouchableOpacity>
 
       {/* Actions */}
@@ -196,5 +236,65 @@ const styles = StyleSheet.create({
   },
   actionTextActive: {
     color: '#F44336',
+  },
+  quizResultCard: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  quizResultHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  quizResultTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2D5F3F',
+  },
+  quizResultStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+  },
+  quizResultStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  quizResultStatValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2D5F3F',
+    marginBottom: 4,
+  },
+  quizResultStatLabel: {
+    fontSize: 12,
+    color: '#666',
+  },
+  quizResultDivider: {
+    width: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  challengeMeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#D4AF37',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    gap: 8,
+  },
+  challengeMeButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 
@@ -157,7 +157,7 @@ export default function QuizQuestionScreen({ category, difficulty, onComplete, o
 
   if (showExitConfirm) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.exitConfirmContainer}>
           <View style={styles.exitConfirmCard}>
             <Ionicons name="warning-outline" size={64} color="#FF9800" />
@@ -183,12 +183,12 @@ export default function QuizQuestionScreen({ category, difficulty, onComplete, o
             </View>
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -360,7 +360,7 @@ export default function QuizQuestionScreen({ category, difficulty, onComplete, o
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -372,8 +372,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#2D5F3F',
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
