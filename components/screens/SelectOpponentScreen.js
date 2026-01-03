@@ -12,6 +12,7 @@ const DEMO_USERS = [
     lastActive: null,
     isFollowing: true,
     points: 2850,
+    level: 11,
     categoryStats: {
       Quran: { accuracy: 92, gamesPlayed: 45 },
       Hadith: { accuracy: 88, gamesPlayed: 32 },
@@ -28,6 +29,7 @@ const DEMO_USERS = [
     lastActive: null,
     isFollowing: true,
     points: 3200,
+    level: 15,
     categoryStats: {
       Quran: { accuracy: 95, gamesPlayed: 60 },
       Hadith: { accuracy: 91, gamesPlayed: 48 },
@@ -44,6 +46,7 @@ const DEMO_USERS = [
     lastActive: '2h ago',
     isFollowing: true,
     points: 2100,
+    level: 8,
     categoryStats: {
       Quran: { accuracy: 88, gamesPlayed: 38 },
       Hadith: { accuracy: 75, gamesPlayed: 22 },
@@ -60,6 +63,7 @@ const DEMO_USERS = [
     lastActive: null,
     isFollowing: false,
     points: 2450,
+    level: 9,
     categoryStats: {
       Quran: { accuracy: 85, gamesPlayed: 40 },
       Hadith: { accuracy: 82, gamesPlayed: 35 },
@@ -76,6 +80,7 @@ const DEMO_USERS = [
     lastActive: '1d ago',
     isFollowing: true,
     points: 1850,
+    level: 7,
     categoryStats: {
       Quran: { accuracy: 80, gamesPlayed: 28 },
       Hadith: { accuracy: 78, gamesPlayed: 24 },
@@ -92,6 +97,7 @@ const DEMO_USERS = [
     lastActive: null,
     isFollowing: false,
     points: 2600,
+    level: 10,
     categoryStats: {
       Quran: { accuracy: 87, gamesPlayed: 42 },
       Hadith: { accuracy: 84, gamesPlayed: 38 },
@@ -108,6 +114,7 @@ const DEMO_USERS = [
     lastActive: '5h ago',
     isFollowing: false,
     points: 2350,
+    level: 9,
     categoryStats: {
       Quran: { accuracy: 83, gamesPlayed: 36 },
       Hadith: { accuracy: 80, gamesPlayed: 30 },
