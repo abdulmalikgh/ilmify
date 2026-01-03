@@ -2,18 +2,38 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal } from 'rea
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import SelectOpponentScreen from './SelectOpponentScreen';
-import ChallengeConfirmationModal from '../modals/ChallengeConfirmationModal';
+import ChallengePreviewScreen from './ChallengePreviewScreen';
+import ChallengeQuestionScreen from './ChallengeQuestionScreen';
+import WaitingForOpponentScreen from './WaitingForOpponentScreen';
+import ChallengeResultsScreen from './ChallengeResultsScreen';
+import ChallengeAnswersReviewScreen from './ChallengeAnswersReviewScreen';
+import ChallengeHistoryScreen from './ChallengeHistoryScreen';
 import ChallengeSentScreen from './ChallengeSentScreen';
 import IncomingChallengeModal from '../modals/IncomingChallengeModal';
 
 export default function QuizScreen({ userData, onCategoryPress }) {
   const [showSelectOpponent, setShowSelectOpponent] = useState(false);
-  const [showChallengeConfirm, setShowChallengeConfirm] = useState(false);
+  const [showChallengePreview, setShowChallengePreview] = useState(false);
+  const [showChallengeQuiz, setShowChallengeQuiz] = useState(false);
   const [showChallengeSent, setShowChallengeSent] = useState(false);
+  const [showChallengeResults, setShowChallengeResults] = useState(false);
+  const [showChallengeHistory, setShowChallengeHistory] = useState(false);
+  const [showAnswersReview, setShowAnswersReview] = useState(false);
   const [selectedOpponent, setSelectedOpponent] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [challengeResults, setChallengeResults] = useState(null);
+  const [opponentResults, setOpponentResults] = useState(null);
+  const [challengeQuestions, setChallengeQuestions] = useState(null);
   const [showIncomingChallenge, setShowIncomingChallenge] = useState(false);
   const [incomingChallenge, setIncomingChallenge] = useState(null);
+
+  // Current user data for VS screen
+  const currentUser = {
+    name: userData?.fullName || userData?.username || 'You',
+    username: userData?.username || 'user',
+    level: 2, // In production: get from userData
+    points: 2450,
+  };
 
   // Demo incoming challenge data
   const DEMO_INCOMING_CHALLENGES = [
@@ -48,40 +68,236 @@ export default function QuizScreen({ userData, onCategoryPress }) {
     setSelectedOpponent(opponent);
     setSelectedCategory(category);
     setShowSelectOpponent(false);
-    setShowChallengeConfirm(true);
+    setShowChallengePreview(true);
   };
 
-  const handleConfirmChallenge = () => {
-    // In production: Send API call to create challenge
-    console.log('Challenge confirmed:', { opponent: selectedOpponent, category: selectedCategory });
-    setShowChallengeConfirm(false);
-
-    // Show ChallengeSentScreen for offline opponents
-    if (!selectedOpponent.isOnline) {
-      setShowChallengeSent(true);
-    } else {
-      // For online opponents, directly start the quiz
-      // TODO: Navigate to quiz screen
-      console.log('Starting quiz immediately for online opponent');
-    }
+  const handleStartChallenge = () => {
+    // Start quiz directly for both online and offline
+    console.log('Starting challenge quiz:', { opponent: selectedOpponent, category: selectedCategory });
+    setShowChallengePreview(false);
+    setShowChallengeQuiz(true);
   };
 
-  const handleStartQuiz = (results) => {
+  const handleChallengeComplete = (results) => {
     console.log('Challenge quiz completed with results:', results);
-    // In production: Save challenge answers to API
-    // API call: saveChallengeAnswers({ challengeId, results, opponentId: selectedOpponent.id })
+    // In production: Send challenge to opponent with questions and your answers
+    // API call: sendChallenge({ opponentId, category, questions, results })
 
-    // Close the Challenge Sent screen and show success message
-    setShowChallengeSent(false);
+    setChallengeResults(results);
+    setShowChallengeQuiz(false);
+    setShowChallengeSent(true);
+  };
 
-    // TODO: Show a success screen or navigate back to quiz home with confirmation
-    alert(`Quiz completed! Score: ${results.score}%\n\nYour answers have been saved. We'll notify you when ${selectedOpponent?.name} accepts the challenge!`);
+  const handleChallengeExit = () => {
+    setShowChallengeQuiz(false);
+    setSelectedOpponent(null);
+    setSelectedCategory(null);
   };
 
   const handleBackFromChallengeSent = () => {
     setShowChallengeSent(false);
     setSelectedOpponent(null);
     setSelectedCategory(null);
+    setChallengeResults(null);
+  };
+
+  const handleViewResults = () => {
+    // Simulate opponent completing the challenge
+    // In production: This would be triggered by real-time notification/polling
+    const mockOpponentResults = {
+      correct: Math.floor(Math.random() * 6), // Random score 0-5
+      total: 5,
+    };
+
+    // Generate demo questions for review BEFORE setting other state
+    const demoQuestions = generateDemoQuestions(selectedCategory, challengeResults, mockOpponentResults);
+
+    // Set all state together
+    setChallengeQuestions(demoQuestions);
+    setOpponentResults(mockOpponentResults);
+    setShowChallengeSent(false);
+    setShowChallengeResults(true);
+  };
+
+  const handleShareResults = () => {
+    console.log('Sharing results...');
+    // In production: Open share sheet with challenge results
+  };
+
+  const handleRematch = () => {
+    console.log('Requesting rematch...');
+    // Close results and show VS screen again
+    setShowChallengeResults(false);
+    setOpponentResults(null);
+    setChallengeResults(null);
+    setShowChallengePreview(true);
+  };
+
+  const handleDoneWithResults = () => {
+    setShowChallengeResults(false);
+    setSelectedOpponent(null);
+    setSelectedCategory(null);
+    setChallengeResults(null);
+    setOpponentResults(null);
+    setChallengeQuestions(null);
+  };
+
+  const handleViewAnswers = () => {
+    console.log('handleViewAnswers called');
+    console.log('Current state - showAnswersReview:', showAnswersReview);
+    console.log('challengeQuestions:', challengeQuestions);
+    console.log('selectedCategory:', selectedCategory);
+    console.log('challengeResults:', challengeResults);
+    console.log('opponentResults:', opponentResults);
+    console.log('currentUser:', currentUser);
+    console.log('selectedOpponent:', selectedOpponent);
+
+    // Generate demo questions with answers if not already set
+    let questionsToShow = challengeQuestions;
+    if (!questionsToShow) {
+      console.log('Generating demo questions...');
+      questionsToShow = generateDemoQuestions(selectedCategory, challengeResults, opponentResults);
+      console.log('Generated questions:', questionsToShow);
+      setChallengeQuestions(questionsToShow);
+    }
+    console.log('About to set showAnswersReview to true with', questionsToShow?.length, 'questions');
+
+    // Close the results modal first, then open the answers review modal
+    // This is necessary because React Native can't stack multiple modals
+    setShowChallengeResults(false);
+
+    // Use a small delay to ensure the results modal closes before opening the answers review
+    setTimeout(() => {
+      setShowAnswersReview(true);
+      console.log('After setShowAnswersReview(true)');
+    }, 300);
+  };
+
+  const handleBackFromAnswersReview = () => {
+    setShowAnswersReview(false);
+  };
+
+  // Generate demo questions with answers for review
+  const generateDemoQuestions = (category, userResults, opponentResults) => {
+    const categoryName = category || 'Islamic Knowledge';
+    const totalQuestions = userResults?.total || 5;
+    const questions = [];
+
+    for (let i = 0; i < totalQuestions; i++) {
+      const roundResult = userResults?.roundResults?.[i];
+      const userCorrect = roundResult?.userCorrect ?? (i < userResults?.correct);
+      const opponentCorrect = roundResult?.opponentCorrect ?? (i < opponentResults?.correct);
+
+      // Generate different questions based on category
+      const questionData = {
+        question: `What is the ${i + 1}st pillar of Islam?`,
+        options: [
+          'Shahada (Declaration of Faith)',
+          'Salah (Prayer)',
+          'Zakat (Charity)',
+          'Sawm (Fasting)'
+        ],
+        correctAnswer: i % 4, // Vary correct answer
+        userAnswer: userCorrect ? (i % 4) : ((i + 1) % 4),
+        opponentAnswer: opponentCorrect ? (i % 4) : ((i + 2) % 4),
+        explanation: 'The five pillars of Islam are the foundation of Muslim life. They are: Shahada (faith), Salah (prayer), Zakat (charity), Sawm (fasting during Ramadan), and Hajj (pilgrimage to Mecca).',
+        reference: 'Sahih Bukhari, Book 2, Hadith 7'
+      };
+
+      // Customize based on actual category
+      if (categoryName.toLowerCase().includes('quran')) {
+        questionData.question = `Question ${i + 1}: How many chapters (Surahs) are in the Quran?`;
+        questionData.options = ['114', '110', '120', '100'];
+        questionData.explanation = 'The Quran contains 114 chapters (Surahs), revealed to Prophet Muhammad (PBUH) over a period of approximately 23 years.';
+        questionData.reference = 'Quran - Complete Text';
+      } else if (categoryName.toLowerCase().includes('hadith')) {
+        questionData.question = `Question ${i + 1}: Who compiled Sahih Bukhari?`;
+        questionData.options = ['Imam Bukhari', 'Imam Muslim', 'Imam Tirmidhi', 'Imam Ahmad'];
+        questionData.explanation = 'Sahih Bukhari was compiled by Imam Muhammad ibn Ismail al-Bukhari and is considered one of the most authentic collections of hadith.';
+        questionData.reference = 'Islamic Hadith Studies';
+      } else if (categoryName.toLowerCase().includes('seerah')) {
+        questionData.question = `Question ${i + 1}: In which year was the Prophet Muhammad (PBUH) born?`;
+        questionData.options = ['570 CE', '580 CE', '560 CE', '590 CE'];
+        questionData.explanation = 'Prophet Muhammad (PBUH) was born in 570 CE in Mecca, in the Year of the Elephant.';
+        questionData.reference = 'Seerah Ibn Hisham';
+      }
+
+      questions.push(questionData);
+    }
+
+    return questions;
+  };
+
+  const handleViewChallengeDetails = (challenge) => {
+    console.log('View challenge details:', challenge);
+
+    // Create opponent object from challenge
+    const opponent = {
+      id: challenge.opponentId || challenge.opponentUsername,
+      name: challenge.opponentName,
+      username: challenge.opponentUsername,
+      level: 5,
+    };
+
+    // Set challenge data for results screen
+    setSelectedOpponent(opponent);
+    setSelectedCategory(challenge.category);
+
+    // Generate mock round results if not available
+    const mockRoundResults = [];
+    const totalQuestions = challenge.totalQuestions || 5;
+    for (let i = 1; i <= totalQuestions; i++) {
+      mockRoundResults.push({
+        round: i,
+        userCorrect: i <= challenge.userScore,
+        opponentCorrect: i <= challenge.opponentScore,
+      });
+    }
+
+    // Set results data
+    const resultsData = {
+      correct: challenge.userScore,
+      total: totalQuestions,
+      roundResults: mockRoundResults,
+    };
+
+    const opponentResultsData = {
+      correct: challenge.opponentScore,
+      total: totalQuestions,
+    };
+
+    setChallengeResults(resultsData);
+    setOpponentResults(opponentResultsData);
+
+    // Generate demo questions for review
+    const demoQuestions = generateDemoQuestions(challenge.category, resultsData, opponentResultsData);
+    setChallengeQuestions(demoQuestions);
+
+    // Close history and show results
+    setShowChallengeHistory(false);
+    setShowChallengeResults(true);
+  };
+
+  const handleRematchFromHistory = (challenge) => {
+    console.log('Rematch from history:', challenge);
+    // Create opponent object from challenge
+    const opponent = {
+      id: challenge.opponentId || challenge.opponentUsername,
+      name: challenge.opponentName,
+      username: challenge.opponentUsername,
+      isOnline: false,
+      level: 5,
+    };
+    setSelectedOpponent(opponent);
+    setSelectedCategory(challenge.category);
+    setShowChallengeHistory(false);
+    setShowChallengePreview(true);
+  };
+
+  const handleChallengeAgain = (challenge) => {
+    console.log('Challenge again:', challenge);
+    // Same as rematch
+    handleRematchFromHistory(challenge);
   };
 
   const handleIncomingChallengeClick = (challenge) => {
@@ -96,9 +312,29 @@ export default function QuizScreen({ userData, onCategoryPress }) {
     // In production: Accept challenge via API
     // API call: acceptChallenge(challenge.id)
 
-    // Navigate to quiz screen to start the challenge
-    alert(`Challenge accepted! Starting ${challenge.category} quiz...`);
-    // TODO: Navigate to QuizQuestionScreen with challenge data
+    // Create opponent object from challenge data
+    const opponent = {
+      id: challenge.challengerId || 'challenger_1',
+      name: challenge.challengerName,
+      username: challenge.challengerUsername,
+      isOnline: challenge.type === 'online',
+      lastActive: challenge.type === 'online' ? null : '2h ago',
+      isFollowing: false,
+      points: 2850,
+      level: 11,
+      categoryStats: {
+        Quran: { accuracy: 92, gamesPlayed: 45 },
+        Hadith: { accuracy: 88, gamesPlayed: 32 },
+        Seerah: { accuracy: 85, gamesPlayed: 28 },
+        Fiqh: { accuracy: 78, gamesPlayed: 20 },
+      },
+      skillLevel: 'advanced',
+    };
+
+    // Set opponent and category, then show VS screen
+    setSelectedOpponent(opponent);
+    setSelectedCategory(challenge.category);
+    setShowChallengePreview(true);
   };
 
   const handleDeclineChallenge = (challenge) => {
@@ -366,7 +602,7 @@ export default function QuizScreen({ userData, onCategoryPress }) {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Active Challenges</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowChallengeHistory(true)}>
                 <Text style={styles.viewAllText}>View All</Text>
               </TouchableOpacity>
             </View>
@@ -412,26 +648,101 @@ export default function QuizScreen({ userData, onCategoryPress }) {
         />
       </Modal>
 
-      {/* Challenge Confirmation Modal */}
-      <ChallengeConfirmationModal
-        visible={showChallengeConfirm}
-        opponent={selectedOpponent}
-        category={selectedCategory}
-        onCancel={() => setShowChallengeConfirm(false)}
-        onConfirm={handleConfirmChallenge}
-      />
+      {/* Challenge Preview Screen */}
+      <Modal
+        visible={showChallengePreview}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <ChallengePreviewScreen
+          currentUser={currentUser}
+          opponent={selectedOpponent}
+          category={selectedCategory}
+          onBack={() => setShowChallengePreview(false)}
+          onStart={handleStartChallenge}
+        />
+      </Modal>
 
-      {/* Challenge Sent Screen Modal */}
+      {/* Challenge Quiz Screen */}
+      <Modal
+        visible={showChallengeQuiz}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <ChallengeQuestionScreen
+          currentUser={currentUser}
+          opponent={selectedOpponent}
+          category={selectedCategory}
+          onComplete={handleChallengeComplete}
+          onExit={handleChallengeExit}
+        />
+      </Modal>
+
+      {/* Waiting for Opponent Screen */}
       <Modal
         visible={showChallengeSent}
         animationType="slide"
         presentationStyle="fullScreen"
       >
-        <ChallengeSentScreen
+        <WaitingForOpponentScreen
+          currentUser={currentUser}
           opponent={selectedOpponent}
           category={selectedCategory}
-          onStartQuiz={handleStartQuiz}
+          userScore={challengeResults?.correct || 0}
           onBack={handleBackFromChallengeSent}
+          onViewResults={handleViewResults}
+        />
+      </Modal>
+
+      {/* Challenge Results Screen */}
+      <Modal
+        visible={showChallengeResults}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <ChallengeResultsScreen
+          currentUser={currentUser}
+          opponent={selectedOpponent}
+          category={selectedCategory}
+          userScore={challengeResults?.correct || 0}
+          opponentScore={opponentResults?.correct || 0}
+          totalQuestions={challengeResults?.total || 5}
+          roundResults={challengeResults?.roundResults || []}
+          questions={challengeQuestions}
+          onShare={handleShareResults}
+          onRematch={handleRematch}
+          onDone={handleDoneWithResults}
+          onViewAnswers={handleViewAnswers}
+        />
+      </Modal>
+
+      {/* Challenge Answers Review Screen */}
+      <Modal
+        visible={showAnswersReview}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onShow={() => console.log('Modal onShow - showAnswersReview:', showAnswersReview)}
+      >
+        <ChallengeAnswersReviewScreen
+          currentUser={currentUser}
+          opponent={selectedOpponent}
+          category={selectedCategory}
+          questions={challengeQuestions || []}
+          onBack={handleBackFromAnswersReview}
+        />
+      </Modal>
+
+      {/* Challenge History Screen */}
+      <Modal
+        visible={showChallengeHistory}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <ChallengeHistoryScreen
+          onBack={() => setShowChallengeHistory(false)}
+          onViewDetails={handleViewChallengeDetails}
+          onRematch={handleRematchFromHistory}
+          onChallengeAgain={handleChallengeAgain}
         />
       </Modal>
 
@@ -706,5 +1017,47 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     borderWidth: 2,
     borderColor: '#FFFFFF',
+  },
+  successOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  successCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 32,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  successIcon: {
+    marginBottom: 20,
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2D5F3F',
+    marginBottom: 12,
+  },
+  successMessage: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  successButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 14,
+    paddingHorizontal: 48,
+    borderRadius: 12,
+  },
+  successButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
