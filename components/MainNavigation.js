@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from './screens/HomeScreen';
-import ExploreScreen from './screens/ExploreScreen';
+import LeaderboardScreen from './screens/LeaderboardScreen';
 import QuizScreen from './screens/QuizScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -23,17 +23,17 @@ export default function MainNavigation({ userData }) {
       iconOutline: 'home-outline',
     },
     {
-      id: 'explore',
-      label: 'Explore',
-      icon: 'compass',
-      iconOutline: 'compass-outline',
-    },
-    {
       id: 'quiz',
       label: 'Quiz',
+      icon: 'game-controller',
+      iconOutline: 'game-controller-outline',
+      badge: challengeCount,
+    },
+    {
+      id: 'leaderboard',
+      label: 'Leaderboard',
       icon: 'trophy',
       iconOutline: 'trophy-outline',
-      badge: challengeCount,
     },
     {
       id: 'notifications',
@@ -64,8 +64,6 @@ export default function MainNavigation({ userData }) {
     switch (activeTab) {
       case 'home':
         return <HomeScreen userData={userData} />;
-      case 'explore':
-        return <ExploreScreen userData={userData} />;
       case 'quiz':
         return (
           <QuizScreen
@@ -73,6 +71,8 @@ export default function MainNavigation({ userData }) {
             onCategoryPress={(category) => setSelectedCategory(category)}
           />
         );
+      case 'leaderboard':
+        return <LeaderboardScreen userData={userData} />;
       case 'notifications':
         return <NotificationsScreen userData={userData} />;
       case 'profile':
